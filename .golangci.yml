@@ -31,9 +31,11 @@ linters-settings:
       - performance
   revive:
     rules:
-      - name: blank-imports
       - name: var-naming
-        severity: warning
+      - name: unused-parameter
+      - name: unused-receiver
+      - name: blank-imports
+        disabled: true
   misspell:
     locale: US
 

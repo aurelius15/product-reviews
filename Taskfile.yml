@@ -1,0 +1,15 @@
+version: 3
+
+tasks:
+  start:
+    desc: "Start the application using Docker Compose"
+    cmd: docker compose up --build -d
+  stop:
+    desc: "Stop the application and remove Docker Compose containers"
+    cmd: docker compose down
+  test:
+    desc: "Run Go tests with race detector and code coverage"
+    cmd: go test -v -race -cover ./...
+  lint:
+    desc: "Launch Go linter for code analysis"
+    cmd: golangci-lint run ./...

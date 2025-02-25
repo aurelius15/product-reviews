@@ -34,6 +34,6 @@ func (p *PostgresCnf) ConnectionString() string {
 		p.user, p.password, p.host, p.port, p.db)
 }
 
-func (p *PostgresCnf) PathToMigrations() string {
+func (_ *PostgresCnf) PathToMigrations() string {
 	return "./migrations"
 }

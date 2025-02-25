@@ -56,7 +56,7 @@ func main() {
 			{
 				Name:  "migration",
 				Usage: "Run DB migrations",
-				Action: func(ctx context.Context, c *cli.Command) error {
+				Action: func(_ context.Context, c *cli.Command) error {
 					return migration.RunMigrationCmd(config.NewPostgresCnf(c))
 				},
 			},
