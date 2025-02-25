@@ -1,0 +1,48 @@
+run:
+  timeout: 10m
+  concurrency: 6
+
+linters:
+  disable-all: true
+  enable:
+    - govet
+    - staticcheck
+    - errcheck
+    - ineffassign
+    - typecheck
+    - unused
+    - gofmt
+    - goimports
+    - revive
+    - misspell
+    - gosec
+    - gocyclo
+    - gocritic
+    - wsl
+
+linters-settings:
+  staticcheck:
+    checks: ["all"]
+  errcheck:
+    check-type-assertions: true
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - performance
+  revive:
+    rules:
+      - name: blank-imports
+      - name: var-naming
+        severity: warning
+  misspell:
+    locale: US
+
+issues:
+  exclude-dirs:
+    - vendor
+    - generated
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - gosec

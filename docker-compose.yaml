@@ -1,0 +1,45 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command:
+      - server
+    ports:
+      - "8080:8080"
+    depends_on:
+      - migration
+      - postgres
+    environment:
+      DB_HOST: "postgres:5432"
+      DB_USER: app_user
+      DB_PASSWORD: app_password
+      DB_NAME: app_db
+
+  migration:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command:
+      - migration
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: "postgres:5432"
+      DB_USER: app_user
+      DB_PASSWORD: app_password
+      DB_NAME: app_db
+
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: app_password
+      POSTGRES_DB: app_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
