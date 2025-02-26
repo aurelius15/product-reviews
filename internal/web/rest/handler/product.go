@@ -35,6 +35,21 @@ func (h *ProductHandler) Retrieve(c *gin.Context) {
 	c.JSON(http.StatusOK, p)
 }
 
+func (h *ProductHandler) Reviews(c *gin.Context) {
+	id, err := h.parseProductID(c)
+	if err != nil {
+		return
+	}
+
+	p, err := h.ser.RetrieveProductReviews(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, p)
+}
+
 func (h *ProductHandler) Create(c *gin.Context) {
 	var product apimodel.Product
 	if err := c.ShouldBindJSON(&product); err != nil {

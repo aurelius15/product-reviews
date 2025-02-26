@@ -26,6 +26,7 @@ func StartRESTServer(ser *service.APIService) *Server {
 	productAPIGroup := apiGroup.Group("/products")
 	productHandler := handler.NewProductHandler(ser)
 	productAPIGroup.GET("/:id", productHandler.Retrieve)
+	productAPIGroup.GET("/:id/reviews", productHandler.Reviews)
 	productAPIGroup.POST("", productHandler.Create)
 	productAPIGroup.PUT("/:id", productHandler.Update)
 	productAPIGroup.DELETE("/:id", productHandler.Delete)

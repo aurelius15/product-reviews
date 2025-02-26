@@ -9,6 +9,7 @@ import (
 
 type ReviewService interface {
 	RetrieveReview(id int) (*apimodel.Review, error)
+	RetrieveProductReviews(productID int) ([]*apimodel.Review, error)
 	SaveReview(apiReview *apimodel.Review) (*apimodel.Review, error)
 	DeleteReview(id int) error
 }
@@ -38,6 +39,27 @@ func (s *reviewService) RetrieveReview(id int) (*apimodel.Review, error) {
 	}
 
 	return aReview, nil
+}
+
+func (s *reviewService) RetrieveProductReviews(productID int) ([]*apimodel.Review, error) {
+	reviews, err := s.reviewRepo.GetByProduct(productID)
+	if err != nil {
+		return nil, err
+	}
+
+	apiReviews := make([]*apimodel.Review, 0, len(reviews))
+	for _, review := range reviews {
+		apiReviews = append(apiReviews, &apimodel.Review{
+			ID:        review.ID,
+			FirstName: review.FirstName,
+			LastName:  review.LastName,
+			Comment:   review.Comment,
+			Rating:    review.Rating,
+			ProductID: review.ProductID,
+		})
+	}
+
+	return apiReviews, nil
 }
 
 func (s *reviewService) SaveReview(apiReview *apimodel.Review) (*apimodel.Review, error) {

@@ -10,6 +10,7 @@ import (
 type ReviewRepository interface {
 	Create(p *model.Review) (*model.Review, error)
 	Get(id int) (*model.Review, error)
+	GetByProduct(productID int) ([]*model.Review, error)
 	Update(p *model.Review) (*model.Review, error)
 	Delete(id int) error
 }
@@ -48,6 +49,17 @@ func (r *reviewRepository) Get(id int) (*model.Review, error) {
 	}
 
 	return review, nil
+}
+
+func (r *reviewRepository) GetByProduct(productID int) ([]*model.Review, error) {
+	var reviews []*model.Review
+	result := r.db.Instance().Find(&reviews, "product_id = ?", productID)
+
+	if result.Error != nil {
+		return nil, errors.Wrap(result.Error, "failed to get reviews")
+	}
+
+	return reviews, nil
 }
 
 func (r *reviewRepository) Update(review *model.Review) (*model.Review, error) {
