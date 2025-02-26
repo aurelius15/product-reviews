@@ -42,13 +42,12 @@ func NewNats(cnf *config.NatsCnf) (Publisher, error) {
 		return nil, err
 	}
 
-	info, err := js.AddStream(&nats.StreamConfig{
+	_, err = js.AddStream(&nats.StreamConfig{
 		Name:     fmt.Sprintf("%s-stream", cnf.Subject()),
 		Subjects: []string{cnf.Subject()},
 		Storage:  nats.FileStorage,
 	})
 
-	println(info)
 	if err != nil {
 		return nil, err
 	}

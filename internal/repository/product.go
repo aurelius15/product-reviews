@@ -12,6 +12,7 @@ type ProductRepository interface {
 	Get(id int) (*model.Product, error)
 	Update(p *model.Product) (*model.Product, error)
 	Delete(id int) error
+	GetAvgRating(id int) (float64, error)
 }
 type productRepository struct {
 	db storage.DataStore
@@ -83,4 +84,15 @@ func (r *productRepository) Delete(id int) error {
 	}
 
 	return nil
+}
+
+func (r *productRepository) GetAvgRating(id int) (float64, error) {
+	var avgRating float64
+
+	result := r.db.Instance().Raw("SELECT AVG(rating) FROM reviews WHERE product_id = ?", id).Scan(&avgRating)
+	if result.Error != nil {
+		return 0, errors.Wrap(result.Error, "failed to get avg rating")
+	}
+
+	return avgRating, nil
 }

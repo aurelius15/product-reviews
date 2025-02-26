@@ -62,9 +62,15 @@ func main() {
 						Sources:  cli.EnvVars("NATS_SUBJECT"),
 						Required: true,
 					},
+					&cli.StringFlag{
+						Name:     "redis-host",
+						Usage:    "Redis host to connect (example: 'localhost:6379')",
+						Sources:  cli.EnvVars("REDIS_HOST"),
+						Required: true,
+					},
 				},
 				Action: func(ctx context.Context, c *cli.Command) error {
-					return api.RestAPICmd(ctx, config.NewPostgresCnf(c), config.NewNATSCnf(c))
+					return api.RestAPICmd(ctx, config.NewPostgresCnf(c), config.NewRedisCnf(c), config.NewNATSCnf(c))
 				},
 			},
 			{

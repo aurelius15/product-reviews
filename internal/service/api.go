@@ -10,9 +10,9 @@ type APIService struct {
 	ReviewService
 }
 
-func NewAPIService(db storage.DataStore, publisher nats.Publisher) *APIService {
+func NewAPIService(db storage.DataStore, cache storage.CacheStore, publisher nats.Publisher) *APIService {
 	return &APIService{
-		ProductService: NewProductService(db),
+		ProductService: NewProductService(db, cache),
 		ReviewService:  NewReviewService(db, publisher),
 	}
 }

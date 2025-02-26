@@ -11,8 +11,18 @@ import (
 	"github.com/aurelius15/product-reviews/internal/web/rest"
 )
 
-func RestAPICmd(ctx context.Context, postgresCnf *config.PostgresCnf, natsCnf *config.NatsCnf) error {
+func RestAPICmd(
+	ctx context.Context,
+	postgresCnf *config.PostgresCnf,
+	redisCnf *config.RedisCnf,
+	natsCnf *config.NatsCnf,
+) error {
 	postgresStorage, err := storage.NewPostgresStorage(postgresCnf)
+	if err != nil {
+		return err
+	}
+
+	redisStorage, err := storage.NewRedisStorage(ctx, redisCnf)
 	if err != nil {
 		return err
 	}
@@ -22,7 +32,7 @@ func RestAPICmd(ctx context.Context, postgresCnf *config.PostgresCnf, natsCnf *c
 		return err
 	}
 
-	s := rest.StartRESTServer(service.NewAPIService(postgresStorage, publisher))
+	s := rest.StartRESTServer(service.NewAPIService(postgresStorage, redisStorage, publisher))
 
 	gCtx, cancel := utils.GracefulShutdown(ctx)
 	defer cancel()
@@ -30,6 +40,7 @@ func RestAPICmd(ctx context.Context, postgresCnf *config.PostgresCnf, natsCnf *c
 	s.Shutdown(gCtx)
 	postgresStorage.Close()
 	publisher.Close()
+	redisStorage.Close()
 
 	return nil
 }

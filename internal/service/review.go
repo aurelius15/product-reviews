@@ -95,7 +95,7 @@ func (s *reviewService) SaveReview(apiReview *apimodel.Review) (*apimodel.Review
 		ProductID: review.ProductID,
 	}
 
-	s.publisher.Publish(aReview, false)
+	_ = s.publisher.Publish(aReview, false)
 
 	return aReview, nil
 }
@@ -106,7 +106,7 @@ func (s *reviewService) DeleteReview(id int) error {
 		return err
 	}
 
-	s.publisher.Publish(&apimodel.Review{
+	_ = s.publisher.Publish(&apimodel.Review{
 		ID: id,
 	}, true)
 
