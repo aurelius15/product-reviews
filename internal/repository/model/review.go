@@ -3,13 +3,13 @@ package model
 import "time"
 
 type Review struct {
-	ID        uint32  `gorm:"primary_key" json:"id"`
-	FirstName string  `json:"first_name"`
-	LastName  string  `json:"last_name"`
-	Comment   string  `json:"comment"`
-	Rating    uint8   `json:"rating"`
-	ProductID uint32  `json:"product_id"`
-	Product   Product `json:"product"`
+	ID        uint32  `gorm:"primaryKey"`
+	FirstName string  `gorm:"not null"`
+	LastName  string  `gorm:"not null"`
+	Comment   string  `gorm:"not null"`
+	Rating    uint8   `gorm:"not null"`
+	ProductID uint32  `gorm:"not null"`
+	Product   Product `gorm:"foreignKey:ProductID;references:ID;constraint:OnDelete:CASCADE"`
 
 	CreatedAt time.Time `gorm:"autoCreateTime"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime"`

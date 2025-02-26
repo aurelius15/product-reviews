@@ -11,7 +11,7 @@ import (
 
 type DataStore interface {
 	Instance() *gorm.DB
-	Close() error
+	Close()
 }
 
 type PostgresStorage struct {
@@ -47,21 +47,21 @@ func (p PostgresStorage) Instance() *gorm.DB {
 	return p.instance
 }
 
-func (p PostgresStorage) Close() error {
+func (p PostgresStorage) Close() {
 	if p.instance == nil {
-		return nil
+		return
 	}
 
 	sqlDB, err := p.instance.DB()
 	if err != nil {
-		return err
+		slog.Error("db connection is not created")
+		return
 	}
 
 	if err := sqlDB.Close(); err != nil {
-		return err
+		slog.Error("db connection is not closed", slog.Any("err", err))
+		return
 	}
 
 	slog.Info("db connection is closed")
-
-	return nil
 }
