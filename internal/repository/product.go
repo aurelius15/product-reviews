@@ -30,7 +30,7 @@ func (r *productRepository) Create(p *model.Product) (*model.Product, error) {
 		return nil, errors.New("can't create product with id")
 	}
 
-	result := r.db.Instance().Debug().Create(p)
+	result := r.db.Instance().Create(p)
 
 	if result.Error != nil {
 		return nil, errors.Wrap(result.Error, "failed to create product")
@@ -62,7 +62,7 @@ func (r *productRepository) Update(p *model.Product) (*model.Product, error) {
 		return nil, errors.New("can't update product without id")
 	}
 
-	result := r.db.Instance().Debug().Model(p).Where("id = ?", id).Updates(p)
+	result := r.db.Instance().Model(p).Where("id = ?", id).Updates(p)
 	if result.Error != nil {
 		return nil, errors.Wrap(result.Error, "failed to update product")
 	}

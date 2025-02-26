@@ -25,11 +25,17 @@ func StartRESTServer(ser *service.APIService) *Server {
 
 	productAPIGroup := apiGroup.Group("/products")
 	productHandler := handler.NewProductHandler(ser)
-
 	productAPIGroup.GET("/:id", productHandler.Retrieve)
 	productAPIGroup.POST("", productHandler.Create)
 	productAPIGroup.PUT("/:id", productHandler.Update)
 	productAPIGroup.DELETE("/:id", productHandler.Delete)
+
+	reviewAPIGroup := apiGroup.Group("/reviews")
+	reviewHandler := handler.NewReviewHandler(ser)
+	reviewAPIGroup.GET("/:id", reviewHandler.Retrieve)
+	reviewAPIGroup.POST("", reviewHandler.Create)
+	reviewAPIGroup.PUT("/:id", reviewHandler.Update)
+	reviewAPIGroup.DELETE("/:id", reviewHandler.Delete)
 
 	srv := &http.Server{
 		Addr:              ":8080",
