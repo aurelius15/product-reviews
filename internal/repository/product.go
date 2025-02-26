@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"database/sql"
+
 	"github.com/pkg/errors"
 
 	"github.com/aurelius15/product-reviews/internal/repository/model"
@@ -87,12 +89,16 @@ func (r *productRepository) Delete(id int) error {
 }
 
 func (r *productRepository) GetAvgRating(id int) (float64, error) {
-	var avgRating float64
+	var avgRating sql.NullFloat64
 
 	result := r.db.Instance().Raw("SELECT AVG(rating) FROM reviews WHERE product_id = ?", id).Scan(&avgRating)
 	if result.Error != nil {
 		return 0, errors.Wrap(result.Error, "failed to get avg rating")
 	}
 
-	return avgRating, nil
+	if avgRating.Valid == false {
+		return 0, nil
+	}
+
+	return avgRating.Float64, nil
 }

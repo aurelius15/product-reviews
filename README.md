@@ -9,6 +9,9 @@ Before you get started, ensure you have the following installed on your system:
 - **Tasks**: Tool for launching and automating commands in your development workflow, simplifies running repetitive
   tasks.
   - `brew install go-task/tap/go-task`
+- **Linter**: A static analysis tool for identifying and fixing programming errors, bugs, stylistic errors, and suspicious
+  constructs in Go code.
+  - `brew install golangci-lint`
 - **NATS CLI** (Optionally): Command-line interface for interacting with NATS servers, used for managing and testing
   messaging systems.
   - `go install github.com/nats-io/natscli/nats@latest`

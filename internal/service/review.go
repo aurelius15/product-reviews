@@ -1,6 +1,8 @@
 package service
 
 import (
+	"github.com/go-playground/validator/v10"
+
 	"github.com/aurelius15/product-reviews/internal/nats"
 	"github.com/aurelius15/product-reviews/internal/repository"
 	"github.com/aurelius15/product-reviews/internal/repository/model"
@@ -17,12 +19,14 @@ type ReviewService interface {
 type reviewService struct {
 	reviewRepo repository.ReviewRepository
 	publisher  nats.Publisher
+	validate   *validator.Validate
 }
 
 func NewReviewService(db storage.DataStore, publisher nats.Publisher) ReviewService {
 	return &reviewService{
 		reviewRepo: repository.NewReviewRepository(db),
 		publisher:  publisher,
+		validate:   validator.New(),
 	}
 }
 
@@ -66,6 +70,10 @@ func (s *reviewService) RetrieveProductReviews(productID int) ([]*apimodel.Revie
 }
 
 func (s *reviewService) SaveReview(apiReview *apimodel.Review) (*apimodel.Review, error) {
+	if err := s.validate.Struct(apiReview); err != nil {
+		return nil, err
+	}
+
 	review := &model.Review{
 		ID:        apiReview.ID,
 		FirstName: apiReview.FirstName,

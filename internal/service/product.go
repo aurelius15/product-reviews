@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-playground/validator/v10"
+
 	"github.com/aurelius15/product-reviews/internal/repository"
 	"github.com/aurelius15/product-reviews/internal/repository/model"
 	"github.com/aurelius15/product-reviews/internal/storage"
@@ -19,12 +21,14 @@ type ProductService interface {
 type productService struct {
 	productRepo repository.ProductRepository
 	cache       storage.CacheStore
+	validate    *validator.Validate
 }
 
 func NewProductService(db storage.DataStore, cache storage.CacheStore) ProductService {
 	return &productService{
 		productRepo: repository.NewProductRepository(db),
 		cache:       cache,
+		validate:    validator.New(),
 	}
 }
 
@@ -51,6 +55,10 @@ func (s *productService) RetrieveProduct(id int) (*apimodel.Product, error) {
 }
 
 func (s *productService) SaveProduct(apiProduct *apimodel.Product) (*apimodel.Product, error) {
+	if err := s.validate.Struct(apiProduct); err != nil {
+		return nil, err
+	}
+
 	product := &model.Product{
 		ID:          apiProduct.ID,
 		Name:        apiProduct.Name,
