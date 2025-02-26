@@ -1,6 +1,9 @@
 package service
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/go-playground/validator/v10"
 
 	"github.com/aurelius15/product-reviews/internal/nats"
@@ -18,13 +21,15 @@ type ReviewService interface {
 }
 type reviewService struct {
 	reviewRepo repository.ReviewRepository
+	cache      storage.CacheStore
 	publisher  nats.Publisher
 	validate   *validator.Validate
 }
 
-func NewReviewService(db storage.DataStore, publisher nats.Publisher) ReviewService {
+func NewReviewService(db storage.DataStore, cache storage.CacheStore, publisher nats.Publisher) ReviewService {
 	return &reviewService{
 		reviewRepo: repository.NewReviewRepository(db),
+		cache:      cache,
 		publisher:  publisher,
 		validate:   validator.New(),
 	}
@@ -49,24 +54,14 @@ func (s *reviewService) RetrieveReview(id int) (*apimodel.Review, error) {
 }
 
 func (s *reviewService) RetrieveProductReviews(productID int) ([]*apimodel.Review, error) {
-	reviews, err := s.reviewRepo.GetByProduct(productID)
-	if err != nil {
-		return nil, err
+	cacheKey := fmt.Sprintf("product:%d:reviews", productID)
+	apiReviews := make([]*apimodel.Review, 0)
+
+	if err := s.cache.Get(cacheKey, &apiReviews); err == nil {
+		return apiReviews, nil
 	}
 
-	apiReviews := make([]*apimodel.Review, 0, len(reviews))
-	for _, review := range reviews {
-		apiReviews = append(apiReviews, &apimodel.Review{
-			ID:        review.ID,
-			FirstName: review.FirstName,
-			LastName:  review.LastName,
-			Comment:   review.Comment,
-			Rating:    review.Rating,
-			ProductID: review.ProductID,
-		})
-	}
-
-	return apiReviews, nil
+	return s.cacheProductReviews(productID, cacheKey)
 }
 
 func (s *reviewService) SaveReview(apiReview *apimodel.Review) (*apimodel.Review, error) {
@@ -119,4 +114,40 @@ func (s *reviewService) DeleteReview(id int) error {
 	}, true)
 
 	return nil
+}
+
+func (s *reviewService) cacheProductReviews(productID int, cacheKey string) ([]*apimodel.Review, error) {
+	acquired, err := s.cache.Lock(cacheKey, 10*time.Second)
+	if err != nil {
+		return nil, err
+	}
+
+	if !acquired {
+		time.Sleep(100 * time.Millisecond)
+		return s.RetrieveProductReviews(productID)
+	}
+	defer s.cache.Unlock(cacheKey)
+
+	reviews, err := s.reviewRepo.GetByProduct(productID)
+	if err != nil {
+		return nil, err
+	}
+
+	apiReviews := make([]*apimodel.Review, 0, len(reviews))
+	for _, review := range reviews {
+		apiReviews = append(apiReviews, &apimodel.Review{
+			ID:        review.ID,
+			FirstName: review.FirstName,
+			LastName:  review.LastName,
+			Comment:   review.Comment,
+			Rating:    review.Rating,
+			ProductID: review.ProductID,
+		})
+	}
+
+	if err := s.cache.Set(cacheKey, apiReviews, 5*time.Minute); err != nil {
+		return nil, err
+	}
+
+	return apiReviews, nil
 }
