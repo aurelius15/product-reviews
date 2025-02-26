@@ -17,7 +17,7 @@ type productService struct {
 	productRepo repository.ProductRepository
 }
 
-func NewProductService(db *storage.PostgresStorage) ProductService {
+func NewProductService(db storage.DataStore) ProductService {
 	return &productService{
 		productRepo: repository.NewProductRepository(db),
 	}

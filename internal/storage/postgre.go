@@ -20,7 +20,7 @@ type PostgresStorage struct {
 
 var instance *PostgresStorage
 
-func NewPostgresStorage(cnf *config.PostgresCnf) (*PostgresStorage, error) {
+func NewPostgresStorage(cnf *config.PostgresCnf) (DataStore, error) {
 	if instance != nil {
 		return instance, nil
 	}

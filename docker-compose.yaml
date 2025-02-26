@@ -15,6 +15,8 @@ services:
       DB_USER: app_user
       DB_PASSWORD: app_password
       DB_NAME: app_db
+      NATS_HOST: "nats:4222"
+      NATS_SUBJECT: "reviews"
 
   migration:
     build:
@@ -41,5 +43,15 @@ services:
     ports:
       - "5432:5432"
 
+  nats:
+    image: nats:2.10
+    command: "--jetstream"
+    volumes:
+      - nats-data:/data
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+
 volumes:
   postgres_data:
+  nats-data:

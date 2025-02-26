@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/aurelius15/product-reviews/internal/nats"
 	"github.com/aurelius15/product-reviews/internal/repository"
 	"github.com/aurelius15/product-reviews/internal/repository/model"
 	"github.com/aurelius15/product-reviews/internal/storage"
@@ -15,11 +16,13 @@ type ReviewService interface {
 }
 type reviewService struct {
 	reviewRepo repository.ReviewRepository
+	publisher  nats.Publisher
 }
 
-func NewReviewService(db *storage.PostgresStorage) ReviewService {
+func NewReviewService(db storage.DataStore, publisher nats.Publisher) ReviewService {
 	return &reviewService{
 		reviewRepo: repository.NewReviewRepository(db),
+		publisher:  publisher,
 	}
 }
 
@@ -83,14 +86,18 @@ func (s *reviewService) SaveReview(apiReview *apimodel.Review) (*apimodel.Review
 		return nil, err
 	}
 
-	return &apimodel.Review{
+	aReview := &apimodel.Review{
 		ID:        review.ID,
 		FirstName: review.FirstName,
 		LastName:  review.LastName,
 		Comment:   review.Comment,
 		Rating:    review.Rating,
 		ProductID: review.ProductID,
-	}, nil
+	}
+
+	s.publisher.Publish(aReview, false)
+
+	return aReview, nil
 }
 
 func (s *reviewService) DeleteReview(id int) error {
@@ -98,6 +105,10 @@ func (s *reviewService) DeleteReview(id int) error {
 	if err != nil {
 		return err
 	}
+
+	s.publisher.Publish(&apimodel.Review{
+		ID: id,
+	}, true)
 
 	return nil
 }

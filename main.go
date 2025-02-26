@@ -49,8 +49,22 @@ func main() {
 			{
 				Name:  "server",
 				Usage: "Launch API server",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:     "nats-host",
+						Usage:    "NATS host to connect (example: 'localhost:4222')",
+						Sources:  cli.EnvVars("NATS_HOST"),
+						Required: true,
+					},
+					&cli.StringFlag{
+						Name:     "nats-subject",
+						Usage:    "NATS subject to listen",
+						Sources:  cli.EnvVars("NATS_SUBJECT"),
+						Required: true,
+					},
+				},
 				Action: func(ctx context.Context, c *cli.Command) error {
-					return api.RestAPICmd(ctx, config.NewPostgresCnf(c))
+					return api.RestAPICmd(ctx, config.NewPostgresCnf(c), config.NewNATSCnf(c))
 				},
 			},
 			{
