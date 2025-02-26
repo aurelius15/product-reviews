@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/aurelius15/product-reviews/internal/repository"
+	"github.com/aurelius15/product-reviews/internal/repository/model"
 	"github.com/aurelius15/product-reviews/internal/storage"
 	"github.com/aurelius15/product-reviews/internal/web/rest/apimodel"
 )
@@ -32,6 +33,33 @@ func (s APIService) RetrieveProduct(id int) (*apimodel.Product, error) {
 	}
 
 	return aProduct, nil
+}
+
+func (s APIService) SaveProduct(apiProduct *apimodel.Product) (*apimodel.Product, error) {
+	product := &model.Product{
+		ID:          apiProduct.ID,
+		Name:        apiProduct.Name,
+		Description: apiProduct.Desc,
+		Price:       apiProduct.Price,
+	}
+
+	var err error
+	if product.ID == 0 {
+		product, err = s.productRepo.Create(product)
+	} else {
+		product, err = s.productRepo.Update(product)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &apimodel.Product{
+		ID:    product.ID,
+		Name:  product.Name,
+		Desc:  product.Description,
+		Price: product.Price,
+	}, nil
 }
 
 func (s APIService) DeleteProduct(id int) error {

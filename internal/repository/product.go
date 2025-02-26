@@ -8,9 +8,9 @@ import (
 )
 
 type ProductRepository interface {
-	Create(p *model.Product) error
+	Create(p *model.Product) (*model.Product, error)
 	Get(id int) (*model.Product, error)
-	Update(p *model.Product) error
+	Update(p *model.Product) (*model.Product, error)
 	Delete(id int) error
 }
 type productRepository struct {
@@ -21,22 +21,22 @@ func NewProductRepository(db storage.DataStore) ProductRepository {
 	return &productRepository{db: db}
 }
 
-func (r *productRepository) Create(p *model.Product) error {
+func (r *productRepository) Create(p *model.Product) (*model.Product, error) {
 	if p == nil {
-		return errors.New("product is nil")
+		return nil, errors.New("product is nil")
 	}
 
 	if p.ID != 0 {
-		return errors.New("can't create product with id")
+		return nil, errors.New("can't create product with id")
 	}
 
-	result := r.db.Instance().Create(p)
+	result := r.db.Instance().Debug().Create(p)
 
 	if result.Error != nil {
-		return errors.Wrap(result.Error, "failed to create product")
+		return nil, errors.Wrap(result.Error, "failed to create product")
 	}
 
-	return nil
+	return p, nil
 }
 
 func (r *productRepository) Get(id int) (*model.Product, error) {
@@ -50,17 +50,30 @@ func (r *productRepository) Get(id int) (*model.Product, error) {
 	return p, nil
 }
 
-func (r *productRepository) Update(p *model.Product) error {
+func (r *productRepository) Update(p *model.Product) (*model.Product, error) {
 	if p == nil {
-		return errors.New("product is nil")
+		return nil, errors.New("product is nil")
 	}
 
-	result := r.db.Instance().Save(p)
+	id := p.ID
+	p.ID = 0
+
+	if id == 0 {
+		return nil, errors.New("can't update product without id")
+	}
+
+	result := r.db.Instance().Debug().Model(p).Where("id = ?", id).Updates(p)
 	if result.Error != nil {
-		return errors.Wrap(result.Error, "failed to update product")
+		return nil, errors.Wrap(result.Error, "failed to update product")
 	}
 
-	return nil
+	if result.RowsAffected == 0 {
+		return nil, errors.New("failed to update product")
+	}
+
+	p.ID = id
+
+	return p, nil
 }
 
 func (r *productRepository) Delete(id int) error {

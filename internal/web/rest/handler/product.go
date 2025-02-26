@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/aurelius15/product-reviews/internal/service"
+	"github.com/aurelius15/product-reviews/internal/web/rest/apimodel"
 )
 
 type ProductHandler struct {
@@ -20,9 +21,8 @@ func NewProductHandler(ser *service.APIService) *ProductHandler {
 }
 
 func (h *ProductHandler) Retrieve(c *gin.Context) {
-	id, err := strconv.Atoi(c.Params.ByName("id"))
+	id, err := h.parseProductID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id format"})
 		return
 	}
 
@@ -35,18 +35,48 @@ func (h *ProductHandler) Retrieve(c *gin.Context) {
 	c.JSON(http.StatusOK, p)
 }
 
-func (_ *ProductHandler) Create(_ *gin.Context) {
+func (h *ProductHandler) Create(c *gin.Context) {
+	var product apimodel.Product
+	if err := c.ShouldBindJSON(&product); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		return
+	}
 
+	p, err := h.ser.SaveProduct(&product)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, p)
 }
 
-func (_ *ProductHandler) Update(_ *gin.Context) {
+func (h *ProductHandler) Update(c *gin.Context) {
+	id, err := h.parseProductID(c)
+	if err != nil {
+		return
+	}
 
+	var product apimodel.Product
+	if err := c.ShouldBindJSON(&product); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		return
+	}
+
+	product.ID = id
+
+	p, err := h.ser.SaveProduct(&product)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, p)
 }
 
 func (h *ProductHandler) Delete(c *gin.Context) {
-	id, err := strconv.Atoi(c.Params.ByName("id"))
+	id, err := h.parseProductID(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id format"})
 		return
 	}
 
@@ -56,4 +86,14 @@ func (h *ProductHandler) Delete(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+func (h *ProductHandler) parseProductID(c *gin.Context) (int, error) {
+	id, err := strconv.Atoi(c.Params.ByName("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id format"})
+		return 0, err
+	}
+
+	return id, nil
 }
